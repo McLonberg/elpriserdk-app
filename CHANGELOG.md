@@ -18,3 +18,9 @@
 ### Added
 
 - Added /responses endpoint with list of files in app
+
+## [0.3.1] - 2025-08-02
+
+### Changed
+
+- Documentation
