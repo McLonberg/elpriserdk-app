@@ -38,12 +38,14 @@ jobs:
 
       - name: Build Docker image
         run: |
-          docker build -t $IMAGE_NAME:${{ steps.version.outputs.next_version }} -t $IMAGE_NAME:latest .
+          IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          docker build -t $IMAGE_NAME_LC:${{ steps.version.outputs.next_version }} -t $IMAGE_NAME_LC:latest .
 
       - name: Push Docker image
         run: |
-          docker push $IMAGE_NAME:${{ steps.version.outputs.next_version }}
-          docker push $IMAGE_NAME:latest
+          IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          docker push $IMAGE_NAME_LC:${{ steps.version.outputs.next_version }}
+          docker push $IMAGE_NAME_LC:latest
 
       - name: Create Git tag
         run: |
