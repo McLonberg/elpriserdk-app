@@ -47,3 +47,18 @@ This will initialize the application, fetch the current electricity prices, cate
 - **Green**: Low electricity prices
 
 Adjust the thresholds in `src/elpriser/categorizer.py` to modify the categorization logic as needed.
+
+## API Routes
+
+The application exposes the following API endpoints:
+
+- `GET /lookahead`
+  - Returns the six-hour look-ahead cumulative price and its category for the current day.
+
+- `GET /today`
+  - Returns a list of today's hourly electricity prices, each with its time, cost, and category.
+
+- `GET /tomorrow`
+  - Returns tomorrow's hourly electricity prices and their categories (if available).
+
+Each endpoint returns data in JSON format. See the source code in `src/main.py` for implementation details.

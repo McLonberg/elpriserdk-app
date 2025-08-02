@@ -24,6 +24,8 @@ class Fetcher:
             # Save to file
             filename = f"{year}-{month}-{day}.json"
             filepath = os.path.join(self.data_dir, filename)
+            if not os.path.exists(self.data_dir):
+                os.makedirs(self.data_dir)
             with open(filepath, 'w') as f:
                 json.dump(prices, f)
             return prices

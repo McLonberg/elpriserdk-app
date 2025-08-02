@@ -1,5 +1,4 @@
 import schedule
-import time
 import os
 import json
 from datetime import datetime, timedelta
@@ -8,7 +7,7 @@ from elpriser.categorizer import Categorizer
 from elpriser.lookahead import Lookahead
 from flask import Flask, jsonify
 
-app = Flask(__name__)
+app = Flask("ElpriserDK")
 
 def fetch_next_day_prices():
     fetcher = Fetcher()
@@ -69,7 +68,17 @@ def get_today_prices():
 def lookahead_endpoint():
     prices = get_today_prices()
     lookahead = Lookahead()
-    cumulative_price, category, lookahead_window = lookahead.get_lookahead_window(prices, window=6, from_now=True)
+    cumulative_price, lookahead_window = lookahead.get_lookahead_window(prices, window=6, from_now=True)
+    categorizer = Categorizer()
+    hourly_thresholds = categorizer.total_thresholds
+    amber_threshold = hourly_thresholds["amber"] * 6
+    red_threshold = hourly_thresholds["red"] * 6
+    if cumulative_price < amber_threshold:
+        category = "green"
+    elif amber_threshold <= cumulative_price < red_threshold:
+        category = "amber"
+    else:
+        category = "red"
     if not lookahead_window:
         return jsonify({
             "error": "No data available for the next 6 hours",
@@ -83,8 +92,8 @@ def lookahead_endpoint():
         "category": category
     })
 
-@app.route('/hourly')
-def hourly_endpoint():
+@app.route('/today')
+def today_endpoint():
     prices = get_today_prices()
     categorizer = Categorizer()
     hourly = []
@@ -135,6 +144,54 @@ def tomorrow_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+def ensure_today_data():
+    responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
+    if not os.path.exists(responses_dir):
+        print(f"Creating responses directory at {responses_dir}")
+        os.makedirs(responses_dir)
+    today = datetime.now()
+    filename = f"{today.year}-{today.month:02d}-{today.day:02d}.json"
+    filepath = os.path.join(responses_dir, filename)
+    if not os.path.exists(filepath):
+        fetcher = Fetcher()
+        day_prices = fetcher.fetch_prices(date=today)
+        # If fetcher.fetch_prices does not return data, you may need to fetch and write manually
+        if day_prices:
+            with open(filepath, 'w') as f:
+                json.dump(day_prices, f)
+            print(f"Fetched and saved today's prices for {today.strftime('%Y-%m-%d')}")
+        else:
+            print(f"Fetched today's prices for {today.strftime('%Y-%m-%d')}, but no data to save.")
+    else:
+        print(f"Today's prices already available: {filename}")
+
+def ensure_last_7_days_data():
+    responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
+    if not os.path.exists(responses_dir):
+        os.makedirs(responses_dir)
+    today = datetime.now()
+    # Generate the set of filenames for the last 7 days
+    last_7_days = set()
+    for i in range(7):
+        day = today - timedelta(days=i)
+        filename = f"{day.year}-{day.month:02d}-{day.day:02d}.json"
+        last_7_days.add(filename)
+        filepath = os.path.join(responses_dir, filename)
+        if not os.path.exists(filepath):
+            fetcher = Fetcher()
+            day_prices = fetcher.fetch_prices(date=day)
+            if day_prices:
+                with open(filepath, 'w') as f:
+                    json.dump(day_prices, f)
+                print(f"Fetched and saved prices for {day.strftime('%Y-%m-%d')}")
+            else:
+                print(f"Fetched prices for {day.strftime('%Y-%m-%d')}, but no data to save.")
+    # Delete files older than last 7 days
+    for fname in os.listdir(responses_dir):
+        if fname.endswith('.json') and fname not in last_7_days:
+            os.remove(os.path.join(responses_dir, fname))
+            print(f"Deleted old price file: {fname}")
+
 def main():
     categorizer = Categorizer()
     lookahead = Lookahead()
@@ -145,13 +202,24 @@ def main():
     categorized_prices = {time: categorizer.categorize(price) for time, price in prices.items()}
 
     # Single six-hour look-ahead from this moment
-    cumulative_price, category, lookahead_window = lookahead.get_lookahead_window(prices, window=6, from_now=True)
+    cumulative_price, lookahead_window = lookahead.get_lookahead_window(prices, window=6, from_now=True)
+    # Re-categorize cumulative_price based on hourly threshold times 6
+    hourly_thresholds = categorizer.total_thresholds
+    amber_threshold = hourly_thresholds["amber"] * 6
+    red_threshold = hourly_thresholds["red"] * 6
+    if cumulative_price < amber_threshold:
+        lookahead_category = "green"
+    elif amber_threshold <= cumulative_price < red_threshold:
+        lookahead_category = "amber"
+    else:
+        lookahead_category = "red"
     print("\nSix-Hour Look-Ahead (from now):")
     print(f"Time window: {lookahead_window[0]} to {lookahead_window[-1]}")
-    print(f"Cumulative cost: {cumulative_price}")
-    print(f"Category: {category}")
+    print(f"Cumulative cost for a 1 KW device for 6 hours: {cumulative_price}")
+    print(f"Category: {lookahead_category}")
 
 if __name__ == "__main__":
+    ensure_last_7_days_data()
     # Schedule fetching next day's prices at 15:00 every day
     schedule.every().day.at("15:00").do(fetch_next_day_prices)
     main()

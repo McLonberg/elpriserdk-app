@@ -1,1 +1,4 @@
 .venv/
+src/elpriser/responses/*
+!.gitkeep
+__pycache__/

@@ -15,13 +15,5 @@ class Lookahead:
             start_idx = 0
         lookahead = times[start_idx:start_idx+window]
         cumulative_price = sum(prices[t] for t in lookahead)
-        category = self.categorize(cumulative_price)
-        return cumulative_price, category, lookahead
-
-    def categorize(self, cumulative_price):
-        if cumulative_price < 3.0:
-            return "green"
-        elif 3.0 <= cumulative_price < 6.0:
-            return "amber"
-        else:
-            return "red"
+        # Only return cumulative_price and lookahead; let caller handle categorization
+        return cumulative_price, lookahead
