@@ -12,3 +12,9 @@
 
 - Made repository public
 - Changes to tag versioning
+
+## [0.3.0] - 2025-08-02
+
+### Added
+
+- Added /responses endpoint with list of files in app

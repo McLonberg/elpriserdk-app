@@ -192,6 +192,17 @@ def ensure_last_7_days_data():
             os.remove(os.path.join(responses_dir, fname))
             print(f"Deleted old price file: {fname}")
 
+def list_response_files():
+    responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
+    files = [f for f in os.listdir(responses_dir)
+             if os.path.isfile(os.path.join(responses_dir, f)) and f != '.gitkeep']
+    return sorted(files)
+
+@app.route('/responses')
+def responses_endpoint():
+    files = list_response_files()
+    return jsonify({"files": files})
+
 def main():
     categorizer = Categorizer()
     lookahead = Lookahead()
