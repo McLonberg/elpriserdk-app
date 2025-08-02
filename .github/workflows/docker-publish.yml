@@ -36,18 +36,32 @@ jobs:
           fi
           echo "next_version=$next" >> $GITHUB_OUTPUT
 
+      - name: Check if version tag exists
+        id: tagcheck
+        run: |
+          if git rev-parse ${{ steps.version.outputs.next_version }} >/dev/null 2>&1; then
+            echo "tag_exists=true" >> $GITHUB_OUTPUT
+          else
+            echo "tag_exists=false" >> $GITHUB_OUTPUT
+
       - name: Build Docker image
         run: |
           IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
           docker build -t $IMAGE_NAME_LC:${{ steps.version.outputs.next_version }} -t $IMAGE_NAME_LC:latest .
 
-      - name: Push Docker image
+      - name: Push Docker image (versioned)
+        if: steps.tagcheck.outputs.tag_exists == 'false'
         run: |
           IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
           docker push $IMAGE_NAME_LC:${{ steps.version.outputs.next_version }}
+
+      - name: Push Docker image (latest)
+        run: |
+          IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
           docker push $IMAGE_NAME_LC:latest
 
       - name: Create Git tag
+        if: steps.tagcheck.outputs.tag_exists == 'false'
         run: |
           git config user.name github-actions
           git config user.email github-actions@github.com

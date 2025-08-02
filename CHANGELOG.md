@@ -11,3 +11,4 @@
 ### Changed
 
 - Made repository public
+- Changes to tag versioning
