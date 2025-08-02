@@ -4,14 +4,11 @@ on:
   push:
     branches: [main]
 
-env:
-  IMAGE_NAME: ghcr.io/${{ github.repository }}
-
 jobs:
   build-and-push:
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: read
       packages: write
 
     steps:
@@ -25,45 +22,19 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Get next version
+      - name: Read current version
         id: version
         run: |
-          latest=$(git tag --sort=-v:refname | grep '^v' | head -n1)
-          if [ -z "$latest" ]; then
-            next="v0.1.0"
-          else
-            next="v$(echo $latest | sed 's/v//' | awk -F. '{$NF+=1; OFS="."; print $1,$2,$3}')"
-          fi
-          echo "next_version=$next" >> $GITHUB_OUTPUT
-
-      - name: Check if version tag exists
-        id: tagcheck
-        run: |
-          if git rev-parse ${{ steps.version.outputs.next_version }} >/dev/null 2>&1; then
-            echo "tag_exists=true" >> $GITHUB_OUTPUT
-          else
-            echo "tag_exists=false" >> $GITHUB_OUTPUT
+          VERSION=$(cat VERSION)
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
 
       - name: Build Docker image
         run: |
-          IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
-          docker build -t $IMAGE_NAME_LC:${{ steps.version.outputs.next_version }} -t $IMAGE_NAME_LC:latest .
+          IMAGE_NAME_LC=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker build -t $IMAGE_NAME_LC:${{ steps.version.outputs.version }} -t $IMAGE_NAME_LC:latest .
 
-      - name: Push Docker image (versioned)
-        if: steps.tagcheck.outputs.tag_exists == 'false'
+      - name: Push Docker image
         run: |
-          IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
-          docker push $IMAGE_NAME_LC:${{ steps.version.outputs.next_version }}
-
-      - name: Push Docker image (latest)
-        run: |
-          IMAGE_NAME_LC=$(echo "$IMAGE_NAME" | tr '[:upper:]' '[:lower:]')
+          IMAGE_NAME_LC=$(echo "ghcr.io/${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          docker push $IMAGE_NAME_LC:${{ steps.version.outputs.version }}
           docker push $IMAGE_NAME_LC:latest
-
-      - name: Create Git tag
-        if: steps.tagcheck.outputs.tag_exists == 'false'
-        run: |
-          git config user.name github-actions
-          git config user.email github-actions@github.com
-          git tag ${{ steps.version.outputs.next_version }}
-          git push origin ${{ steps.version.outputs.next_version }}
