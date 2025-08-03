@@ -24,3 +24,13 @@
 ### Changed
 
 - Documentation
+
+## [0.4.0] - 2025-08-03
+
+### Added
+
+- Changed schedule function to get next day's prices to run hourly
+
+### Changed
+
+- Removed functions that were not used

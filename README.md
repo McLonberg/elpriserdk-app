@@ -4,7 +4,7 @@ This application retrieves electricity prices from elpriser.dk, categorizes them
 
 ## Project Structure
 
-```
+``` python
 elpriserdk-app
 ├── src
 │   ├── main.py               # Entry point of the application
@@ -21,20 +21,23 @@ elpriserdk-app
 ## Setup Instructions
 
 1. Clone the repository:
-   ```
+
+   ``` bash
    git clone <repository-url>
    cd elpriserdk-app
    ```
 
 2. Install the required dependencies:
-   ```
+
+   ``` bash
    pip install -r requirements.txt
    ```
 
 ## Usage
 
 To run the application, execute the following command:
-```
+
+``` bash
 python src/main.py
 ```
 

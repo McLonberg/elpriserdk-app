@@ -144,27 +144,6 @@ def tomorrow_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-def ensure_today_data():
-    responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
-    if not os.path.exists(responses_dir):
-        print(f"Creating responses directory at {responses_dir}")
-        os.makedirs(responses_dir)
-    today = datetime.now()
-    filename = f"{today.year}-{today.month:02d}-{today.day:02d}.json"
-    filepath = os.path.join(responses_dir, filename)
-    if not os.path.exists(filepath):
-        fetcher = Fetcher()
-        day_prices = fetcher.fetch_prices(date=today)
-        # If fetcher.fetch_prices does not return data, you may need to fetch and write manually
-        if day_prices:
-            with open(filepath, 'w') as f:
-                json.dump(day_prices, f)
-            print(f"Fetched and saved today's prices for {today.strftime('%Y-%m-%d')}")
-        else:
-            print(f"Fetched today's prices for {today.strftime('%Y-%m-%d')}, but no data to save.")
-    else:
-        print(f"Today's prices already available: {filename}")
-
 def ensure_last_7_days_data():
     responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
     if not os.path.exists(responses_dir):
@@ -209,9 +188,6 @@ def main():
 
     prices = get_prices_from_local_files()
 
-    # Categorize current prices
-    categorized_prices = {time: categorizer.categorize(price) for time, price in prices.items()}
-
     # Single six-hour look-ahead from this moment
     cumulative_price, lookahead_window = lookahead.get_lookahead_window(prices, window=6, from_now=True)
     # Re-categorize cumulative_price based on hourly threshold times 6
@@ -231,12 +207,7 @@ def main():
 
 if __name__ == "__main__":
     ensure_last_7_days_data()
-    # Schedule fetching next day's prices at 15:00 every day
-    schedule.every().day.at("15:00").do(fetch_next_day_prices)
+    # Schedule checking next day's prices every hour
+    schedule.every().hour.do(fetch_next_day_prices)
     main()
-    # Only run the scheduler if explicitly requested
-    # Comment out the infinite loop to allow normal exit
-    # while True:
-    #     schedule.run_pending()
-    #     time.sleep(60)
     app.run(host="0.0.0.0", port=5000)

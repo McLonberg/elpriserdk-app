@@ -18,7 +18,7 @@ class Fetcher:
         day = f"{today.day:02d}"
         region = "DK2"
         final_url = f"{self.base_url}{year}/{month}-{day}_{region}.json"
-        response = requests.get(final_url)
+        response = requests.get(final_url, timeout=10)
         if response.status_code == 200:
             prices = response.json()
             # Save to file
