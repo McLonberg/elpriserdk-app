@@ -7,6 +7,7 @@ WORKDIR /app
 # Copy requirements and source code
 COPY requirements.txt ./
 COPY src ./src
+COPY VERSION ./
 
 # Install dependencies
 RUN pip install --no-cache-dir -r requirements.txt
@@ -15,4 +16,4 @@ RUN pip install --no-cache-dir -r requirements.txt
 EXPOSE 5000
 
 # Run the Flask app
-CMD ["python", "src/main.py"]
+CMD ["python", "./src/main.py"]

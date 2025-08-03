@@ -34,3 +34,10 @@
 ### Changed
 
 - Removed functions that were not used
+
+## [0.5.0] - 2025-08-03
+
+### Added
+
+- Added version endpoint
+- Added health endpoint

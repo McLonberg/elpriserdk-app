@@ -64,7 +64,13 @@ The application exposes the following API endpoints:
 - `GET /tomorrow`
   - Returns tomorrow's hourly electricity prices and their categories (if available).
 
-- `GET /responses`
-  - Returns a sorted list of all files in the responses folder (excluding .gitkeep).
+- `GET /data`
+  - Returns a sorted list of all date files in the responses folder.
+
+- `GET /version`
+  - Returns the current application version from the VERSION file.
+
+- `GET /health`
+  - Returns a simple JSON status for health checks.
 
 Each endpoint returns data in JSON format. See the source code in `src/main.py` for implementation details.

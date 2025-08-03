@@ -177,12 +177,26 @@ def list_response_files():
              if os.path.isfile(os.path.join(responses_dir, f)) and f != '.gitkeep']
     return sorted(files)
 
-@app.route('/responses')
+@app.route('/data')
 def responses_endpoint():
     files = list_response_files()
     return jsonify({"files": files})
 
+@app.route('/version')
+def version_endpoint():
+    with open(os.path.join(os.path.dirname(__file__), '..', 'VERSION')) as f:
+        version = f.read().strip()
+    return jsonify({"version": version})
+
+@app.route('/health')
+def health_endpoint():
+    return jsonify({"status": "ok"})
+
 def main():
+    # Output version to stdout on startup
+    with open(os.path.join(os.path.dirname(__file__), '..', 'VERSION')) as f:
+        version = f.read().strip()
+    print(f"Application version: {version}")
     categorizer = Categorizer()
     lookahead = Lookahead()
 
