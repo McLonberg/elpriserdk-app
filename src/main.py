@@ -6,14 +6,23 @@ from elpriser.fetcher import Fetcher
 from elpriser.categorizer import Categorizer
 from elpriser.lookahead import Lookahead
 from flask import Flask, jsonify
+import threading
+import time
 
 app = Flask("ElpriserDK")
 
 def fetch_next_day_prices():
-    fetcher = Fetcher()
+    print("Checking for updated electricity prices", flush=True)
+    responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
     tomorrow = datetime.now() + timedelta(days=1)
+    filename = f"{tomorrow.year}-{tomorrow.month:02d}-{tomorrow.day:02d}.json"
+    filepath = os.path.join(responses_dir, filename)
+    if os.path.exists(filepath):
+        print(f"Prices for {tomorrow.strftime('%Y-%m-%d')} already exist. Skipping fetch.", flush=True)
+        return
+    fetcher = Fetcher()
     fetcher.fetch_prices(date=tomorrow)
-    print(f"Fetched prices for {tomorrow.strftime('%Y-%m-%d')}")
+    print(f"Fetched prices for {tomorrow.strftime('%Y-%m-%d')}", flush=True)
 
 def get_additional_cost(dt):
     hour = dt.hour
@@ -219,9 +228,15 @@ def main():
     print(f"Cumulative cost for a 1 KW device for 6 hours: {cumulative_price}")
     print(f"Category: {lookahead_category}")
 
+def run_scheduler():
+    print('Scheduler thread started', flush=True)
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
 if __name__ == "__main__":
     ensure_last_7_days_data()
-    # Schedule checking next day's prices every hour
-    schedule.every().hour.do(fetch_next_day_prices)
+    schedule.every().day.at("15:00").do(fetch_next_day_prices)
+    threading.Thread(target=run_scheduler, daemon=True).start()
     main()
     app.run(host="0.0.0.0", port=5000)

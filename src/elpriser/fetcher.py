@@ -6,7 +6,7 @@ import requests
 class Fetcher:
     def __init__(self):
         self.base_url = "https://www.elprisenligenu.dk/api/v1/prices/"
-        self.data_dir = os.path.join(os.path.dirname(__file__), '../../responses')
+        self.data_dir = os.path.join(os.path.dirname(__file__), 'responses')
 
     def fetch_prices(self, date=None):
         if date is None:
@@ -28,6 +28,7 @@ class Fetcher:
                 os.makedirs(self.data_dir)
             with open(filepath, 'w') as f:
                 json.dump(prices, f)
+            print(f"Fetched prices for {year}-{month}-{day} and saved to {filepath}")
             return prices
         else:
             print(response.status_code)

@@ -41,3 +41,15 @@
 
 - Added version endpoint
 - Added health endpoint
+
+## [0.6.0] - 2025-08-04
+
+### Changed
+
+- Made changes to scheduling routine
+
+## [0.6.1] - 2025-08-04
+
+### Changed
+
+- Corrected file location
