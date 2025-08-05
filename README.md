@@ -1,6 +1,6 @@
 # Electricity Price Lookup Application
 
-This application retrieves electricity prices from elpriser.dk, categorizes them into red, amber, or green based on predefined thresholds, and implements a six-hour look-ahead feature.
+This application retrieves electricity prices from elprrisenligenu.dk, categorizes them into red, amber, or green based on predefined thresholds, and implements a six-hour look-ahead feature.
 
 ## Project Structure
 
@@ -53,6 +53,7 @@ Adjust the thresholds in `src/elpriser/categorizer.py` to modify the categorizat
 
 ## API Routes
 
+
 The application exposes the following API endpoints:
 
 - `GET /lookahead`
@@ -63,6 +64,9 @@ The application exposes the following API endpoints:
 
 - `GET /tomorrow`
   - Returns tomorrow's hourly electricity prices and their categories (if available).
+
+- `GET /fetch-data`
+  - Returns tomorrow's data file contents (if available) with cost and category for each hour. Does not fetch from the API, only reads the local file.
 
 - `GET /data`
   - Returns a sorted list of all date files in the responses folder.

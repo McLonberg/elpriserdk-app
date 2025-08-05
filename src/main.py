@@ -153,6 +153,28 @@ def tomorrow_endpoint():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/fetch-data')
+def fetch_data_endpoint():
+    tomorrow = datetime.now() + timedelta(days=1)
+    fetcher = Fetcher()
+    try:
+        day_prices = fetcher.fetch_prices(date=tomorrow)
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    prices = {}
+    for entry in day_prices:
+        dt = datetime.fromisoformat(entry['time_start'].replace('Z', '+00:00'))
+        total_cost = entry['DKK_per_kWh'] + get_additional_cost(dt)
+        prices[entry['time_start']] = total_cost
+    hourly = []
+    categorizer = Categorizer()
+    for time, cost in prices.items():
+        hourly.append({
+            "time": time,
+            "cost": cost,
+            "category": categorizer.categorize(cost)
+        })
+    return jsonify(hourly)
 def ensure_last_7_days_data():
     responses_dir = os.path.join(os.path.dirname(__file__), 'elpriser', 'responses')
     if not os.path.exists(responses_dir):
