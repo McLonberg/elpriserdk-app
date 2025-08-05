@@ -53,3 +53,9 @@
 ### Changed
 
 - Corrected file location
+
+## [0.7.0] - 22025-08-05
+
+### Changed
+
+- Corrected lookahead function where the time period goes across midnight and requires next day's file
